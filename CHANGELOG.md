@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-03-02
+
+### Fixed
+
+- Render nested structured types as YAML instead of Go's %v representation (#36) ([#36](https://github.com/szhekpisov/diffyml/pull/36))
+- Resolve fixture naming collisions for duplicated test numbers (#37) ([#37](https://github.com/szhekpisov/diffyml/pull/37))
+
 ## [1.5.0] - 2026-03-01
 
 ### Added
@@ -71,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add GOPATH/bin PATH hint to Go Install section (#3) ([#3](https://github.com/szhekpisov/diffyml/pull/3))
 - Cleanup (#6) ([#6](https://github.com/szhekpisov/diffyml/pull/6))
 
+[1.5.1]: https://github.com/szhekpisov/diffyml/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/szhekpisov/diffyml/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/szhekpisov/diffyml/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/szhekpisov/diffyml/compare/v1.2.0...v1.3.0
