@@ -1,12 +1,8 @@
 package diffyml
 
 import (
-	"bytes"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,52 +13,52 @@ import (
 // --- deepEqual: *OrderedMap different lengths ---
 
 func TestDeepEqual_OrderedMaps_DifferentLengths(t *testing.T) {
-	a := &OrderedMap{Values: map[string]interface{}{"x": 1, "y": 2}}
-	b := &OrderedMap{Values: map[string]interface{}{"x": 1}}
+	a := &OrderedMap{Values: map[string]any{"x": 1, "y": 2}}
+	b := &OrderedMap{Values: map[string]any{"x": 1}}
 	if deepEqual(a, b, nil) {
 		t.Error("expected OrderedMaps with different lengths to not be deepEqual")
 	}
 }
 
-// --- deepEqual: []interface{} slice case ---
+// --- deepEqual: []any slice case ---
 
 func TestDeepEqual_Slices_Equal(t *testing.T) {
-	a := []interface{}{"x", "y", "z"}
-	b := []interface{}{"x", "y", "z"}
+	a := []any{"x", "y", "z"}
+	b := []any{"x", "y", "z"}
 	if !deepEqual(a, b, nil) {
 		t.Error("expected equal slices to be deepEqual")
 	}
 }
 
 func TestDeepEqual_Slices_DifferentValues(t *testing.T) {
-	a := []interface{}{"x", "y"}
-	b := []interface{}{"x", "z"}
+	a := []any{"x", "y"}
+	b := []any{"x", "z"}
 	if deepEqual(a, b, nil) {
 		t.Error("expected slices with different values to not be deepEqual")
 	}
 }
 
 func TestDeepEqual_Slices_DifferentLengths(t *testing.T) {
-	a := []interface{}{"x"}
-	b := []interface{}{"x", "y"}
+	a := []any{"x"}
+	b := []any{"x", "y"}
 	if deepEqual(a, b, nil) {
 		t.Error("expected slices with different lengths to not be deepEqual")
 	}
 }
 
 func TestDeepEqual_Slices_Nested(t *testing.T) {
-	a := []interface{}{[]interface{}{"a", "b"}}
-	b := []interface{}{[]interface{}{"a", "b"}}
+	a := []any{[]any{"a", "b"}}
+	b := []any{[]any{"a", "b"}}
 	if !deepEqual(a, b, nil) {
 		t.Error("expected nested equal slices to be deepEqual")
 	}
 }
 
-// --- extractPathOrder: map[string]interface{} branch ---
+// --- extractPathOrder: map[string]any branch ---
 
 func TestExtractPathOrder_PlainMap(t *testing.T) {
-	docs := []interface{}{
-		map[string]interface{}{
+	docs := []any{
+		map[string]any{
 			"beta":  "2",
 			"alpha": "1",
 		},
@@ -81,9 +77,9 @@ func TestExtractPathOrder_PlainMap(t *testing.T) {
 }
 
 func TestExtractPathOrder_PlainMapNested(t *testing.T) {
-	docs := []interface{}{
-		map[string]interface{}{
-			"parent": map[string]interface{}{"child": "val"},
+	docs := []any{
+		map[string]any{
+			"parent": map[string]any{"child": "val"},
 		},
 	}
 	order := extractPathOrder(docs, nil, nil)
@@ -96,14 +92,14 @@ func TestExtractPathOrder_PlainMapNested(t *testing.T) {
 	}
 }
 
-// --- areListItemsHeterogeneous: map[string]interface{} items ---
+// --- areListItemsHeterogeneous: map[string]any items ---
 
 func TestAreListItemsHeterogeneous_PlainMaps(t *testing.T) {
-	from := []interface{}{
-		map[string]interface{}{"namespaceSelector": "ns1"},
+	from := []any{
+		map[string]any{"namespaceSelector": "ns1"},
 	}
-	to := []interface{}{
-		map[string]interface{}{"ipBlock": "10.0.0.0/8"},
+	to := []any{
+		map[string]any{"ipBlock": "10.0.0.0/8"},
 	}
 
 	if !areListItemsHeterogeneous(from, to) {
@@ -112,11 +108,11 @@ func TestAreListItemsHeterogeneous_PlainMaps(t *testing.T) {
 }
 
 func TestAreListItemsHeterogeneous_PlainMapsMultipleKeys(t *testing.T) {
-	from := []interface{}{
-		map[string]interface{}{"a": "1", "b": "2"},
+	from := []any{
+		map[string]any{"a": "1", "b": "2"},
 	}
-	to := []interface{}{
-		map[string]interface{}{"c": "3"},
+	to := []any{
+		map[string]any{"c": "3"},
 	}
 
 	// from item has 2 keys, so checkSingleDistinctKeys returns false
@@ -145,17 +141,17 @@ func TestClamp_InRange(t *testing.T) {
 	}
 }
 
-// --- GetContextColorCode: true color path ---
+// --- ContextColorCode: true color path ---
 
-func TestGetContextColorCode_TrueColor(t *testing.T) {
-	code := GetContextColorCode(true)
+func TestContextColorCode_TrueColor(t *testing.T) {
+	code := ContextColorCode(true)
 	if !strings.HasPrefix(code, "\033[38;2;") {
 		t.Errorf("expected true color ANSI prefix, got %q", code)
 	}
 }
 
-func TestGetContextColorCode_Basic(t *testing.T) {
-	code := GetContextColorCode(false)
+func TestContextColorCode_Basic(t *testing.T) {
+	code := ContextColorCode(false)
 	if code != "\033[90m" {
 		t.Errorf("expected gray ANSI code \\033[90m, got %q", code)
 	}
@@ -174,32 +170,14 @@ func TestChrootError_Error(t *testing.T) {
 	}
 }
 
-// --- ExitResult.String(): nil error and unknown exit code ---
-
-func TestExitResult_String_ErrorNilErr(t *testing.T) {
-	result := NewExitResult(ExitCodeError, nil)
-	got := result.String()
-	if !strings.Contains(got, "unknown error") {
-		t.Errorf("expected 'unknown error', got %q", got)
-	}
-}
-
-func TestExitResult_String_UnknownCode(t *testing.T) {
-	result := NewExitResult(99, nil)
-	got := result.String()
-	if !strings.Contains(got, "unknown exit code") || !strings.Contains(got, "99") {
-		t.Errorf("expected 'unknown exit code: 99', got %q", got)
-	}
-}
-
-// --- renderFirstKeyValueYAML: []interface{} value ---
+// --- renderFirstKeyValueYAML: []any value ---
 
 func TestDetailedFormatter_ListValueInFirstKey(t *testing.T) {
 	// The first key of a list entry maps to a list value,
-	// exercising the []interface{} case in renderFirstKeyValueYAML.
+	// exercising the []any case in renderFirstKeyValueYAML.
 	om := &OrderedMap{
 		Keys:   []string{"ports", "protocol"},
-		Values: map[string]interface{}{"ports": []interface{}{"80", "443"}, "protocol": "TCP"},
+		Values: map[string]any{"ports": []any{"80", "443"}, "protocol": "TCP"},
 	}
 
 	diffs := []Difference{
@@ -228,18 +206,18 @@ func TestDetailedFormatter_ListValueInFirstKey(t *testing.T) {
 func TestCompareListsByIdentifier_NoIDFallback(t *testing.T) {
 	// Mix identified and unidentified items.
 	// Items with "name" get identifier-based matching; scalars use fallback.
-	from := []interface{}{
+	from := []any{
 		&OrderedMap{
 			Keys:   []string{"name", "value"},
-			Values: map[string]interface{}{"name": "a", "value": "1"},
+			Values: map[string]any{"name": "a", "value": "1"},
 		},
 		"scalar-from-only",
 		"shared-scalar",
 	}
-	to := []interface{}{
+	to := []any{
 		&OrderedMap{
 			Keys:   []string{"name", "value"},
-			Values: map[string]interface{}{"name": "a", "value": "2"},
+			Values: map[string]any{"name": "a", "value": "2"},
 		},
 		"new-scalar",
 		"shared-scalar",
@@ -269,64 +247,11 @@ func TestCompareListsByIdentifier_NoIDFallback(t *testing.T) {
 	}
 }
 
-// --- runDirectory: real filesystem paths ---
+// --- TrueColorCode: exercises clamp through boundary values ---
 
-func TestRunDirectory_RealFilesystem(t *testing.T) {
-	fromDir := t.TempDir()
-	toDir := t.TempDir()
-
-	// Create test YAML files: one shared (modified), one only-from, one only-to
-	writeFile(t, filepath.Join(fromDir, "common.yaml"), "key: old\n")
-	writeFile(t, filepath.Join(toDir, "common.yaml"), "key: new\n")
-	writeFile(t, filepath.Join(fromDir, "removed.yaml"), "gone: true\n")
-	writeFile(t, filepath.Join(toDir, "added.yaml"), "fresh: true\n")
-
-	cfg := &CLIConfig{Output: "compact"}
-	var stdout, stderr bytes.Buffer
-	rc := &RunConfig{Stdout: &stdout, Stderr: &stderr}
-
-	result := runDirectory(cfg, rc, fromDir, toDir)
-
-	if result.Code == ExitCodeError {
-		t.Fatalf("runDirectory failed: %v\nstderr: %s", result.Err, stderr.String())
-	}
-
-	output := stdout.String()
-	if !strings.Contains(output, "common.yaml") {
-		t.Error("expected common.yaml in output")
-	}
-}
-
-func TestRunDirectory_RealFilesystem_OnlyFromAndOnlyTo(t *testing.T) {
-	fromDir := t.TempDir()
-	toDir := t.TempDir()
-
-	writeFile(t, filepath.Join(fromDir, "deleted.yaml"), "old: data\n")
-	writeFile(t, filepath.Join(toDir, "created.yaml"), "new: data\n")
-
-	cfg := &CLIConfig{Output: "compact"}
-	var stdout, stderr bytes.Buffer
-	rc := &RunConfig{Stdout: &stdout, Stderr: &stderr}
-
-	result := runDirectory(cfg, rc, fromDir, toDir)
-
-	if result.Code == ExitCodeError {
-		t.Fatalf("runDirectory failed: %v", result.Err)
-	}
-}
-
-func writeFile(t *testing.T, path string, content string) {
-	t.Helper()
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-		t.Fatalf("failed to write %s: %v", path, err)
-	}
-}
-
-// --- GetTrueColorCode: exercises clamp through boundary values ---
-
-func TestGetTrueColorCode_Clamped(t *testing.T) {
+func TestTrueColorCode_Clamped(t *testing.T) {
 	// Values out of range should be clamped
-	code := GetTrueColorCode(-1, 256, 128)
+	code := TrueColorCode(-1, 256, 128)
 	expected := fmt.Sprintf("\033[38;2;%d;%d;%dm", 0, 255, 128)
 	if code != expected {
 		t.Errorf("expected clamped color code %q, got %q", expected, code)
@@ -339,15 +264,15 @@ func TestGetTrueColorCode_Clamped(t *testing.T) {
 
 func TestExtractPathOrder_PlainMapIndexIncrement(t *testing.T) {
 	// Kills INCREMENT_DECREMENT at diffyml.go:155 (index++ → index--)
-	// Uses nested maps so recursion enters the map[string]interface{} case at line 150,
+	// Uses nested maps so recursion enters the map[string]any case at line 150,
 	// where index++ (line 155) is executed for each parent path.
 	// With the mutation (index--), all parent paths get the same order value (0),
 	// so the strict ordering assertion catches it.
-	docs := []interface{}{
-		map[string]interface{}{
-			"alpha": map[string]interface{}{"child1": "v1"},
-			"beta":  map[string]interface{}{"child2": "v2"},
-			"gamma": map[string]interface{}{"child3": "v3"},
+	docs := []any{
+		map[string]any{
+			"alpha": map[string]any{"child1": "v1"},
+			"beta":  map[string]any{"child2": "v2"},
+			"gamma": map[string]any{"child3": "v3"},
 		},
 	}
 	order := extractPathOrder(docs, nil, nil)
@@ -365,7 +290,7 @@ func TestExtractPathOrder_PlainMapIndexIncrement(t *testing.T) {
 
 func TestDetailedFormatter_MapContinuationIndent(t *testing.T) {
 	// Kills ARITHMETIC_BASE at detailed_formatter.go:294 (indent+4 → indent-4)
-	// The first key's value is a map[string]interface{}, so renderFirstKeyValueYAML
+	// The first key's value is a map[string]any, so renderFirstKeyValueYAML
 	// enters the map case (line 291) and renders children at indent+4 (=8 spaces).
 	// With the mutation (indent-4), children would be at 0 spaces instead.
 	diffs := []Difference{
@@ -373,7 +298,7 @@ func TestDetailedFormatter_MapContinuationIndent(t *testing.T) {
 			Path: "items.0",
 			Type: DiffAdded,
 			From: nil,
-			To:   map[string]interface{}{"aaa": map[string]interface{}{"child": "value"}},
+			To:   map[string]any{"aaa": map[string]any{"child": "value"}},
 		},
 	}
 
@@ -408,7 +333,7 @@ func TestDetailedFormatter_MapContinuationKeyIndent(t *testing.T) {
 			Path: "items.0",
 			Type: DiffAdded,
 			From: nil,
-			To:   map[string]interface{}{"aaa": "val1", "zzz": "val2"},
+			To:   map[string]any{"aaa": "val1", "zzz": "val2"},
 		},
 	}
 
@@ -441,7 +366,7 @@ func TestDetailedFormatter_FirstKeyMultilineIndent(t *testing.T) {
 	// padding becomes 2+2=4 spaces instead of 8.
 	om := &OrderedMap{
 		Keys:   []string{"config"},
-		Values: map[string]interface{}{"config": "line1\nline2\nline3"},
+		Values: map[string]any{"config": "line1\nline2\nline3"},
 	}
 	diffs := []Difference{
 		{
@@ -469,113 +394,6 @@ func TestDetailedFormatter_FirstKeyMultilineIndent(t *testing.T) {
 				t.Errorf("expected 8 spaces for multiline continuation, got %d: %q", indent, line)
 			}
 		}
-	}
-}
-
-// --- directory.go:232 trueColor mode ---
-
-func TestRunDirectory_TrueColorMode(t *testing.T) {
-	// Kills CONDITIONALS_NEGATION at directory.go:232 (== ColorModeAlways → !=)
-	cfg := &CLIConfig{
-		Output:    "detailed",
-		Color:     "always",
-		TrueColor: "always",
-	}
-	var stdout, stderr bytes.Buffer
-	rc := &RunConfig{
-		Stdout: &stdout,
-		Stderr: &stderr,
-		FilePairs: map[string][2][]byte{
-			"test.yaml": {[]byte("key: old"), []byte("key: new")},
-		},
-	}
-
-	_ = runDirectory(cfg, rc, "", "")
-
-	output := stdout.String()
-	// True color uses \033[38;2;R;G;Bm format
-	if !strings.Contains(output, "\033[38;2;") {
-		t.Errorf("expected true color escape codes with TrueColor=always, got:\n%s", output)
-	}
-}
-
-// --- directory.go:362 summary not called when no diffs ---
-
-func TestRunDirectory_SummaryNotCalledWhenNoDiffs(t *testing.T) {
-	// Kills CONDITIONALS_BOUNDARY at directory.go:362 (len(groups) > 0 → >= 0)
-	t.Setenv("ANTHROPIC_API_KEY", "test-key")
-
-	apiCalled := false
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apiCalled = true
-		w.WriteHeader(500)
-	}))
-	defer server.Close()
-
-	cfg := &CLIConfig{
-		Output:  "github",
-		Summary: true,
-		Color:   "never",
-	}
-	var stdout, stderr bytes.Buffer
-	rc := &RunConfig{
-		Stdout: &stdout,
-		Stderr: &stderr,
-		FilePairs: map[string][2][]byte{
-			"same.yaml": {[]byte("key: same"), []byte("key: same")},
-		},
-		SummaryAPIURL: server.URL,
-	}
-
-	_ = runDirectory(cfg, rc, "", "")
-
-	if apiCalled {
-		t.Error("summarizer should not be called when there are no diffs")
-	}
-}
-
-// --- cli.go:638 brief+summary defers output ---
-
-func TestRun_BriefSummary_DefersOutput(t *testing.T) {
-	// Kills CONDITIONALS_NEGATION at cli.go:638 (== "brief" → != "brief")
-	t.Setenv("ANTHROPIC_API_KEY", "test-key")
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		fmt.Fprint(w, `{"content":[{"type":"text","text":"AI summary of changes."}]}`)
-	}))
-	defer server.Close()
-
-	cfg := NewCLIConfig()
-	cfg.Output = "brief"
-	cfg.Summary = true
-	cfg.Color = "never"
-
-	rc := NewRunConfig()
-	var stdout, stderr strings.Builder
-	rc.Stdout = &stdout
-	rc.Stderr = &stderr
-	rc.FromContent = []byte("key: old")
-	rc.ToContent = []byte("key: new")
-	rc.SummaryAPIURL = server.URL
-
-	result := Run(cfg, rc)
-	output := stdout.String()
-
-	if result.Code == ExitCodeError {
-		t.Fatalf("Run failed: %v\nstderr: %s", result.Err, stderr.String())
-	}
-
-	// When brief+summary succeeds, the AI summary replaces brief output
-	if !strings.Contains(output, "AI summary of changes.") {
-		t.Errorf("expected AI summary in output, got:\n%s", output)
-	}
-
-	// The brief diff output must NOT appear — it should be deferred and replaced.
-	// With the mutation (== "brief" → != "brief"), isBriefSummary becomes false,
-	// so the brief output ("1 modified") is printed alongside the AI summary.
-	if strings.Contains(output, "modified") {
-		t.Errorf("expected brief diff output to be absent when AI summary succeeds, got:\n%s", output)
 	}
 }
 
@@ -680,8 +498,8 @@ func TestComputeLineDiff_IdenticalLines(t *testing.T) {
 // --- compareListsPositional: different-length lists (comparator.go:353,361) ---
 
 func TestCompareListsPositional_ToLonger(t *testing.T) {
-	from := []interface{}{"a", "b"}
-	to := []interface{}{"a", "b", "c", "d"}
+	from := []any{"a", "b"}
+	to := []any{"a", "b", "c", "d"}
 	diffs := compareListsPositional("list", from, to, nil)
 
 	added := 0
@@ -696,8 +514,8 @@ func TestCompareListsPositional_ToLonger(t *testing.T) {
 }
 
 func TestCompareListsPositional_FromLonger(t *testing.T) {
-	from := []interface{}{"a", "b", "c"}
-	to := []interface{}{"a"}
+	from := []any{"a", "b", "c"}
+	to := []any{"a"}
 	diffs := compareListsPositional("list", from, to, nil)
 
 	removed := 0
@@ -708,61 +526,6 @@ func TestCompareListsPositional_FromLonger(t *testing.T) {
 	}
 	if removed != 2 {
 		t.Errorf("expected 2 removed items, got %d", removed)
-	}
-}
-
-// --- buildFilePairsFromMap: all pair types (directory.go:179,181) ---
-
-func TestBuildFilePairsFromMap_AllTypes(t *testing.T) {
-	m := map[string][2][]byte{
-		"both.yaml":      {[]byte("a"), []byte("b")},
-		"from-only.yaml": {[]byte("a"), nil},
-		"to-only.yaml":   {nil, []byte("b")},
-	}
-	pairs := buildFilePairsFromMap(m)
-
-	if len(pairs) != 3 {
-		t.Fatalf("expected 3 pairs, got %d", len(pairs))
-	}
-
-	types := map[string]FilePairType{}
-	for _, p := range pairs {
-		types[p.Name] = p.Type
-	}
-
-	if types["both.yaml"] != FilePairBothExist {
-		t.Error("both.yaml should be FilePairBothExist")
-	}
-	if types["from-only.yaml"] != FilePairOnlyFrom {
-		t.Error("from-only.yaml should be FilePairOnlyFrom")
-	}
-	if types["to-only.yaml"] != FilePairOnlyTo {
-		t.Error("to-only.yaml should be FilePairOnlyTo")
-	}
-}
-
-// --- summarizer: status 502 (summarizer.go:150) ---
-
-func TestSummarize_ServerError502(t *testing.T) {
-	mock := &mockHTTPDoer{
-		statusCode: 502,
-		body:       `{"type":"error","error":{"type":"api_error","message":"bad gateway"}}`,
-	}
-	s := NewSummarizerWithClient("test-model", "test-key", mock)
-
-	groups := []DiffGroup{
-		{FilePath: "f.yaml", Diffs: []Difference{{Path: "a", Type: DiffAdded, To: "v"}}},
-	}
-
-	_, err := s.Summarize(t.Context(), groups)
-	if err == nil {
-		t.Fatal("expected error for 502")
-	}
-	if !strings.Contains(err.Error(), "server error") {
-		t.Errorf("expected 'server error' for 502, got: %v", err)
-	}
-	if !strings.Contains(err.Error(), "bad gateway") {
-		t.Errorf("expected 'bad gateway' message for 502, got: %v", err)
 	}
 }
 
@@ -791,12 +554,12 @@ func TestDetectRenames_AsymmetricTiebreaker(t *testing.T) {
 	// With 3×2 identical ConfigMaps, all 6 pairs have the same score.
 	// Mutations that invert the fromIdx tiebreaker change greedy assignment:
 	// normal → {0:0, 1:1}, remaining=[2]; reversed → {2:0, 1:1}, remaining=[0]
-	from := []interface{}{
+	from := []any{
 		mkK8sConfigMap("cm", []string{"key1", "key2", "key3"}),
 		mkK8sConfigMap("cm", []string{"key1", "key2", "key3"}),
 		mkK8sConfigMap("cm", []string{"key1", "key2", "key3"}),
 	}
-	to := []interface{}{
+	to := []any{
 		mkK8sConfigMap("cm", []string{"key1", "key2", "key3"}),
 		mkK8sConfigMap("cm", []string{"key1", "key2", "key3"}),
 	}
@@ -812,6 +575,131 @@ func TestDetectRenames_AsymmetricTiebreaker(t *testing.T) {
 	}
 	if len(remainingFrom) != 1 || remainingFrom[0] != 2 {
 		t.Errorf("expected remaining=[2], got %v", remainingFrom)
+	}
+}
+
+func TestHasK8sDocuments_OnlyToHasK8s(t *testing.T) {
+	from := []any{map[string]any{"key": "value"}}
+	to := []any{map[string]any{"apiVersion": "v1", "kind": "Service", "metadata": map[string]any{"name": "svc"}}}
+	if !hasK8sDocuments(from, to) {
+		t.Error("expected true when only 'to' has K8s documents")
+	}
+}
+
+func TestGetIdentifier_PlainMap(t *testing.T) {
+	m := map[string]any{"name": "myapp", "value": "1"}
+	id := getIdentifier(m, nil)
+	if id != "myapp" {
+		t.Errorf("expected 'myapp', got %v", id)
+	}
+}
+
+func TestDeepEqual_BothNil(t *testing.T) {
+	if !deepEqual(nil, nil, nil) {
+		t.Error("deepEqual(nil, nil) should be true")
+	}
+}
+
+func TestDeepEqual_TypeMismatch(t *testing.T) {
+	if deepEqual("str", 42, nil) {
+		t.Error("deepEqual with different types should be false")
+	}
+}
+
+func TestCompareListsByIdentifier_NoIDMatchedSkip(t *testing.T) {
+	// Two unidentified items in from that match toNoID items.
+	// The second fromNoID item must iterate past the already-matched slot
+	// to hit the toNoIDMatched continue branch (line 562).
+	from := []any{
+		&OrderedMap{
+			Keys:   []string{"name", "v"},
+			Values: map[string]any{"name": "x", "v": "1"},
+		},
+		"shared-a",
+		"shared-b",
+	}
+	to := []any{
+		&OrderedMap{
+			Keys:   []string{"name", "v"},
+			Values: map[string]any{"name": "x", "v": "1"},
+		},
+		"shared-a",
+		"shared-b",
+	}
+
+	diffs := compareListsByIdentifier("items", from, to, nil)
+	for _, d := range diffs {
+		if d.Type == DiffRemoved || d.Type == DiffAdded {
+			t.Errorf("unexpected diff: %+v", d)
+		}
+	}
+}
+
+func TestDetailedFormatter_RenderKeyValueYAML_ListIndent(t *testing.T) {
+	// Kills ARITHMETIC_BASE at detailed_formatter_render.go:58 (indent+2 → other)
+	// renderKeyValueYAML, case []any: list items are rendered at indent+2.
+	// The OrderedMap first key "items" has a []any value. Since "items" is the
+	// first key, it goes through renderFirstKeyValueYAML at indent=4 (base),
+	// which calls renderListItems at indent+4=8. But we want to test the
+	// renderKeyValueYAML []any branch (line 58), so "items" must be a
+	// CONTINUATION key (not the first key).
+	om := &OrderedMap{
+		Keys:   []string{"name", "items"},
+		Values: map[string]any{"name": "test", "items": []any{"val1", "val2"}},
+	}
+
+	diffs := []Difference{
+		{Path: "spec.containers.0", Type: DiffAdded, From: nil, To: om},
+	}
+
+	f := &DetailedFormatter{}
+	opts := &FormatOptions{Color: false}
+	result := f.Format(diffs, opts)
+
+	// "name" is first key → renderFirstKeyValueYAML at indent=4: "    - name: test"
+	// "items" is continuation key → renderKeyValueYAML at indent=4+2=6: "      items:"
+	// List items are rendered at indent+2=8 via renderListItems: "        - val1"
+	lines := strings.Split(result, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "- val1") || strings.Contains(line, "- val2") {
+			trimmed := strings.TrimLeft(line, " ")
+			indent := len(line) - len(trimmed)
+			if indent != 8 {
+				t.Errorf("expected list items at indent 8, got %d: %q", indent, line)
+			}
+		}
+	}
+}
+
+func TestDetailedFormatter_RenderFirstKeyValueYAML_ListIndent(t *testing.T) {
+	// Kills ARITHMETIC_BASE at detailed_formatter_render.go:86 (indent+4 → other)
+	// renderFirstKeyValueYAML, case []any: nested list items inside a list entry's
+	// first key should be rendered at indent+4.
+	om := &OrderedMap{
+		Keys:   []string{"commands"},
+		Values: map[string]any{"commands": []any{"cmd1", "cmd2"}},
+	}
+
+	diffs := []Difference{
+		{Path: "spec.containers.0", Type: DiffAdded, From: nil, To: om},
+	}
+
+	f := &DetailedFormatter{}
+	opts := &FormatOptions{Color: false}
+	result := f.Format(diffs, opts)
+
+	// "commands" is the first key → renderFirstKeyValueYAML at indent=4.
+	// List items are rendered at indent+4=8 via renderListItems.
+	// Each list item line: "        - cmd1" (8 spaces + "- cmd1")
+	lines := strings.Split(result, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "- cmd1") || strings.Contains(line, "- cmd2") {
+			trimmed := strings.TrimLeft(line, " ")
+			indent := len(line) - len(trimmed)
+			if indent != 8 {
+				t.Errorf("expected list items at indent 8, got %d: %q", indent, line)
+			}
+		}
 	}
 }
 

@@ -32,7 +32,7 @@ func (f fakeFileInfo) Size() int64        { return 0 }
 func (f fakeFileInfo) Mode() os.FileMode  { return f.mode }
 func (f fakeFileInfo) ModTime() time.Time { return time.Time{} }
 func (f fakeFileInfo) IsDir() bool        { return false }
-func (f fakeFileInfo) Sys() interface{}   { return nil }
+func (f fakeFileInfo) Sys() any           { return nil }
 
 func TestIsTerminal_WithCharDevice(t *testing.T) {
 	// Mock stdoutStatFn to simulate a real terminal (character device).
@@ -78,4 +78,48 @@ func TestIsTerminal_Pipe(t *testing.T) {
 	// Note: IsTerminal actually checks os.Stdout, not the fd parameter.
 	// This test just ensures it doesn't panic.
 	_ = IsTerminal(r.Fd())
+}
+
+func TestResolveColorMode_DefaultBranch(t *testing.T) {
+	// Exercise the default case with an invalid ColorMode value.
+	if ResolveColorMode(ColorMode(99), true) != true {
+		t.Error("default branch should fall back to isTerminal value")
+	}
+	if ResolveColorMode(ColorMode(99), false) != false {
+		t.Error("default branch should fall back to isTerminal value")
+	}
+}
+
+func TestDetectTerminal(t *testing.T) {
+	orig := stdoutStatFn
+	t.Cleanup(func() { stdoutStatFn = orig })
+
+	stdoutStatFn = func() (os.FileInfo, error) {
+		return fakeFileInfo{mode: os.ModeCharDevice}, nil
+	}
+
+	cfg := NewColorConfig(ColorModeAuto, false)
+	cfg.DetectTerminal()
+	if !cfg.ShouldUseColor() {
+		t.Error("after DetectTerminal with char device, ShouldUseColor should be true")
+	}
+}
+
+func TestToFormatOptions_NilOpts(t *testing.T) {
+	cfg := NewColorConfig(ColorModeAlways, true)
+	cfg.ToFormatOptions(nil) // should not panic
+}
+
+func TestDetailedColorCode_UnknownType(t *testing.T) {
+	// Exercise the fallback return "" for an unknown diff type in 8-color mode.
+	code := DetailedColorCode(DiffType(99), false)
+	if code != "" {
+		t.Errorf("expected empty string for unknown diff type, got %q", code)
+	}
+}
+
+func TestColorReset(t *testing.T) {
+	if ColorReset() != "\033[0m" {
+		t.Errorf("expected ANSI reset code, got %q", ColorReset())
+	}
 }
