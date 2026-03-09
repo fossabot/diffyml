@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3] - 2026-03-09
+
+### Added
+
+- Replace LCS with Myers diff algorithm for line-level diffs (#45) ([#45](https://github.com/szhekpisov/diffyml/pull/45))
+
+### Fixed
+
+- Render removed diffs before added diffs for consistent output ordering (#44) ([#44](https://github.com/szhekpisov/diffyml/pull/44))
+
 ## [1.5.1] - 2026-03-02
 
 ### Fixed
@@ -78,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add GOPATH/bin PATH hint to Go Install section (#3) ([#3](https://github.com/szhekpisov/diffyml/pull/3))
 - Cleanup (#6) ([#6](https://github.com/szhekpisov/diffyml/pull/6))
 
+[1.5.3]: https://github.com/szhekpisov/diffyml/compare/v1.5.2...v1.5.3
 [1.5.1]: https://github.com/szhekpisov/diffyml/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/szhekpisov/diffyml/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/szhekpisov/diffyml/compare/v1.3.0...v1.4.0
