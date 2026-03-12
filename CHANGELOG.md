@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.7] - 2026-03-12
+
+### Fixed
+
+- Remove normalizeFilePath stderr warning (#56) ([#56](https://github.com/szhekpisov/diffyml/pull/56))
+- Display document-level diffs as YAML documents (#55) ([#55](https://github.com/szhekpisov/diffyml/pull/55))
+
+### Documentation
+
+- Fact-check and fix comparison table in README (#54) ([#54](https://github.com/szhekpisov/diffyml/pull/54))
+
 ## [1.5.6] - 2026-03-12
 
 ### Fixed
@@ -110,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add GOPATH/bin PATH hint to Go Install section (#3) ([#3](https://github.com/szhekpisov/diffyml/pull/3))
 - Cleanup (#6) ([#6](https://github.com/szhekpisov/diffyml/pull/6))
 
+[1.5.7]: https://github.com/szhekpisov/diffyml/compare/v1.5.6...v1.5.7
 [1.5.6]: https://github.com/szhekpisov/diffyml/compare/v1.5.5...v1.5.6
 [1.5.5]: https://github.com/szhekpisov/diffyml/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/szhekpisov/diffyml/compare/v1.5.3...v1.5.4
