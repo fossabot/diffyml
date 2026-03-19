@@ -36,7 +36,7 @@ inputs:
 
 outputs:
   exit-code:
-    description: 'Exit code from diffyml (0=no diff, 1=diff found, 255=error)'
+    description: 'Exit code from diffyml (0=no diff, 1=diff found, >1=error)'
     value: ${{ steps.diff.outputs.exit-code }}
   has-differences:
     description: 'Whether differences were found (true/false, empty on error)'
@@ -64,7 +64,7 @@ runs:
     - name: Cache diffyml binary
       if: inputs.cache == 'true'
       id: cache
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
         path: ~/.diffyml/bin
         key: diffyml-${{ steps.version.outputs.resolved }}-${{ runner.os }}-${{ runner.arch }}
@@ -98,9 +98,9 @@ runs:
         curl -fsSL -o "$ARCHIVE" "${BASE_URL}/${ARCHIVE}"
 
         if command -v sha256sum &>/dev/null; then
-          grep -F "$ARCHIVE" checksums.txt | sha256sum --check -
+          grep -F " $ARCHIVE" checksums.txt | sha256sum --check -
         else
-          grep -F "$ARCHIVE" checksums.txt | shasum -a 256 --check -
+          grep -F " $ARCHIVE" checksums.txt | shasum -a 256 --check -
         fi
 
         tar -xzf "$ARCHIVE" -C bin/ diffyml
