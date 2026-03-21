@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.13] - 2026-03-21
+
+### Fixed
+
+- Use line-by-line diff for multiline strings with whitespace-only changes (#73) ([#73](https://github.com/szhekpisov/diffyml/pull/73))
+- Use line-by-line diff for multiline strings with whitespace-only changes (#74) ([#74](https://github.com/szhekpisov/diffyml/pull/74))
+
 ## [1.5.12] - 2026-03-20
 
 ### Added
@@ -158,6 +165,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add GOPATH/bin PATH hint to Go Install section (#3) ([#3](https://github.com/szhekpisov/diffyml/pull/3))
 - Cleanup (#6) ([#6](https://github.com/szhekpisov/diffyml/pull/6))
 
+[1.5.13]: https://github.com/szhekpisov/diffyml/compare/v1.5.12...v1.5.13
 [1.5.12]: https://github.com/szhekpisov/diffyml/compare/v1.5.11...v1.5.12
 [1.5.11]: https://github.com/szhekpisov/diffyml/compare/v1.5.10...v1.5.11
 [1.5.10]: https://github.com/szhekpisov/diffyml/compare/v1.5.9...v1.5.10
