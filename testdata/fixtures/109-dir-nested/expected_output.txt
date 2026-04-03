@@ -1,0 +1,49 @@
+--- a/ns-a/deploy.yaml
++++ b/ns-a/deploy.yaml
+Found one difference
+
+spec.replicas  (apps/v1/Deployment/ns-a/nested-app)
+  ± value change
+    - 2
+    + 5
+
+--- a/ns-b/removed.yaml
++++ /dev/null
+Found one difference
+
+(document)  (v1/ConfigMap/ns-b/old-config)
+  - one document removed:
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: old-config
+      namespace: ns-b
+    data:
+      key: value
+
+--- /dev/null
++++ b/ns-b/service.yaml
+Found one difference
+
+(document)  (v1/Service/ns-b/new-service)
+  + one document added:
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: new-service
+      namespace: ns-b
+    spec:
+      ports:
+        - port: 80
+
+--- a/top.yaml
++++ b/top.yaml
+Found one difference
+
+spec.replicas  (apps/v1/Deployment/top-app)
+  ± value change
+    - 1
+    + 3
+
