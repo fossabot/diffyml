@@ -293,18 +293,12 @@ func (f *DetailedFormatter) formatModified(sb *strings.Builder, diff Difference,
 		}
 
 		// Scalar string value change (may be cert-transformed)
-		f.writeDescriptorLine(sb, "  ± value change", f.colorModified, opts)
-		f.writeColoredLine(sb, fmt.Sprintf("    - %s", fromStr), f.colorRemoved(opts), opts)
-		f.writeColoredLine(sb, fmt.Sprintf("    + %s", toStr), f.colorAdded(opts), opts)
-		sb.WriteString("\n")
+		f.writeValueChange(sb, fromStr, toStr, opts)
 		return
 	}
 
 	// Default: non-string scalar value change
-	f.writeDescriptorLine(sb, "  ± value change", f.colorModified, opts)
-	f.writeColoredLine(sb, fmt.Sprintf("    - %v", formatDetailedValue(diff.From)), f.colorRemoved(opts), opts)
-	f.writeColoredLine(sb, fmt.Sprintf("    + %v", formatDetailedValue(diff.To)), f.colorAdded(opts), opts)
-	sb.WriteString("\n")
+	f.writeValueChange(sb, formatDetailedValue(diff.From), formatDetailedValue(diff.To), opts)
 }
 
 // detectMultiDoc checks if diffs span multiple documents by examining DocumentIndex values.
@@ -318,6 +312,24 @@ func (f *DetailedFormatter) detectMultiDoc(diffs []Difference) bool {
 		}
 	}
 	return false
+}
+
+// writeValueChange writes a "± value change" block with inline diff highlighting
+// when color is enabled and the values are similar enough, otherwise falls back
+// to plain colored lines.
+func (f *DetailedFormatter) writeValueChange(sb *strings.Builder, from, to string, opts *FormatOptions) {
+	f.writeDescriptorLine(sb, "  ± value change", f.colorModified, opts)
+	if opts.Color {
+		if fromSegs, toSegs := computeInlineDiff(from, to); fromSegs != nil {
+			f.writeInlineDiffLine(sb, "    - ", fromSegs, ColorRoleRemoved, opts)
+			f.writeInlineDiffLine(sb, "    + ", toSegs, ColorRoleAdded, opts)
+			sb.WriteString("\n")
+			return
+		}
+	}
+	f.writeColoredLine(sb, fmt.Sprintf("    - %s", from), f.colorRemoved(opts), opts)
+	f.writeColoredLine(sb, fmt.Sprintf("    + %s", to), f.colorAdded(opts), opts)
+	sb.WriteString("\n")
 }
 
 // writeColoredLine writes a line with color code and newline.
@@ -344,6 +356,20 @@ func (f *DetailedFormatter) writeKeyValueLine(sb *strings.Builder, keyText strin
 func (f *DetailedFormatter) writeDescriptorLine(sb *strings.Builder, text string, colorFn func(*FormatOptions) string, opts *FormatOptions) {
 	sb.WriteString(colorStart(opts, colorFn(opts)))
 	sb.WriteString(text)
+	sb.WriteString(colorEnd(opts))
+	sb.WriteString("\n")
+}
+
+// writeInlineDiffLine writes a prefixed line with inline diff highlighting.
+// Changed segments are rendered in bold with the base color; unchanged segments
+// use a dimmed color for visual contrast.
+func (f *DetailedFormatter) writeInlineDiffLine(sb *strings.Builder, prefix string, segments []inlineSegment, role ColorRole, opts *FormatOptions) {
+	p := resolvedPalette(opts)
+	baseColor := p.ColorCode(role, opts.TrueColor)
+	dim := dimColorCode(role, opts)
+	sb.WriteString(colorStart(opts, dim))
+	sb.WriteString(prefix)
+	renderInlineSegments(sb, segments, baseColor, dim, opts)
 	sb.WriteString(colorEnd(opts))
 	sb.WriteString("\n")
 }
