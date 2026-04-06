@@ -10,6 +10,7 @@ A fast, structural YAML diff tool with built-in Kubernetes intelligence. One dep
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://github.com/szhekpisov/diffyml/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/szhekpisov/diffyml/actions/workflows/test.yml)
 [![Security & Static Analysis](https://github.com/szhekpisov/diffyml/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/szhekpisov/diffyml/actions/workflows/security.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fszhekpisov%2Fdiffyml.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fszhekpisov%2Fdiffyml?ref=badge_shield)
 
 <img src="doc/demo.png" alt="diffyml output" width="600">
 
@@ -495,3 +496,6 @@ This project is heavily inspired by [dyff](https://github.com/homeport/dyff), an
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fszhekpisov%2Fdiffyml.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fszhekpisov%2Fdiffyml?ref=badge_large)
